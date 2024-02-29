@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import { authentication } from "../firebase/firebase.config";
 import { signInWithPhoneNumber } from "firebase/auth";
 import { RecaptchaVerifier } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+
+import Loader from "../components/Loader";
 
 const defaultRegisterFormFields = {
   name: "",
@@ -19,8 +22,10 @@ const Signup = () => {
   const [code, setCode] = useState("");
   const [isCodeVerified, setIsCodeVerified] = useState(false);
   const [formErrors, setformErrors] = useState({});
-  const [isFormSubmit, setIsFormSubmit] = useState(false);
   const [isCode, setIsCode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const { name, email, password, confirmPassword, phoneNumber } =
     registerFormFields;
@@ -31,10 +36,8 @@ const Signup = () => {
     e.preventDefault();
     const validated = validate(registerFormFields);
     setformErrors(validated);
-    setIsFormSubmit(true);
 
     if (Object.keys(validated)?.length === 0 && isCodeVerified) {
-      alert("You have successfully signed up!");
       setIsCode(false);
       setIsCodeVerified(false);
       window.recaptchaVerifier = null;
@@ -48,7 +51,7 @@ const Signup = () => {
         confirmPassword: "",
         phoneNumber: "",
       });
-      window.location.reload();
+      navigate("/success");
     }
   };
 
@@ -118,18 +121,20 @@ const Signup = () => {
   };
 
   const handleVerifyCode = () => {
+    setIsLoading(true);
     confirmationResult = window.confirmationResult;
     confirmationResult
       .confirm(code)
       .then((result) => {
         const user = result.user;
-
+        setIsLoading(false);
         setIsCode(false);
         setIsCodeVerified(true);
         console.log("Otp verified");
       })
       .catch((error) => {
         setIsCodeVerified(false);
+        setIsLoading(false);
         alert("Please enter correct otp");
       });
   };
@@ -141,7 +146,7 @@ const Signup = () => {
 
   return (
     <div className="signup_main_wrapper">
-      <h1>Sign Up</h1>
+      <h1>REGISTER</h1>
       <form className="signup_form" onSubmit={handleSubmit}>
         <input
           type="text"
@@ -192,7 +197,14 @@ const Signup = () => {
               type="button"
               className="send_btn"
             >
-              Verify Code
+              {isLoading ? (
+                <>
+                  <Loader />
+                  Verify Code
+                </>
+              ) : (
+                "Verify Code"
+              )}
             </button>
           </div>
         ) : (
