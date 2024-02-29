@@ -105,7 +105,7 @@ const Signup = () => {
   };
 
   const handleSendCode = async () => {
-    setIsCode(true);
+    console.log("first");
     let phoneNum = countryCode + phoneNumber;
     generateRecap();
     let appVerifier = await window.recaptchaVerifier;
@@ -224,7 +224,9 @@ const Signup = () => {
               <button
                 onClick={handleSendCode}
                 type="button"
-                className="send_btn"
+                className={`send_btn ${
+                  phoneNumber?.length !== 10 && "send_disabled"
+                }`}
               >
                 Send Code
               </button>
