@@ -55,7 +55,7 @@ const Signup = () => {
     }
   };
 
-  const validate = (values) => {
+  const validate = (values, isVerified) => {
     const errors = {};
     const emailregex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
     const phoneregex = /^[0-9]*$/g;
@@ -87,7 +87,7 @@ const Signup = () => {
       errors.phoneNumber = "Mobile Number should be 10 digits";
     } else if (values?.phoneNumber.length > 10) {
       errors.phoneNumber = "Mobile Number should be 10 digits";
-    } else if (!isCodeVerified) {
+    } else if (!isCodeVerified && !isVerified) {
       alert("Please verify your Phone number to proceed");
     }
     return errors;
@@ -105,7 +105,6 @@ const Signup = () => {
   };
 
   const handleSendCode = async () => {
-    console.log("first");
     let phoneNum = countryCode + phoneNumber;
     generateRecap();
     let appVerifier = await window.recaptchaVerifier;
@@ -121,8 +120,10 @@ const Signup = () => {
   };
 
   const handleVerifyCode = () => {
+    const validated = validate(registerFormFields, true);
+    setformErrors(validated);
     setIsLoading(true);
-    confirmationResult = window.confirmationResult;
+    let confirmationResult = window.confirmationResult;
     confirmationResult
       .confirm(code)
       .then((result) => {
