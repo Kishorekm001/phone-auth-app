@@ -38,20 +38,40 @@ const Signup = () => {
     setformErrors(validated);
 
     if (Object.keys(validated)?.length === 0 && isCodeVerified) {
-      setIsCode(false);
-      setIsCodeVerified(false);
-      window.recaptchaVerifier = null;
-      const recaptchaElement = document.getElementById("recaptcha-container");
-      recaptchaElement.innerHTML = "";
+      let formData = new FormData();
+      formData.append("Name", name);
+      formData.append("Email", email);
+      formData.append("Password", password);
+      formData.append("Phone", phoneNumber);
 
-      setRegisterFormFields({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        phoneNumber: "",
-      });
-      navigate("/success");
+      fetch(
+        "https://script.google.com/macros/s/AKfycbzahXgoDQ4gSJJ4PAuv1tKIbl9De_HWP5n8J-F-YdrBOWjTCgXOQkpGGalaFxjfiQfeEg/exec",
+        {
+          method: "POST",
+          body: formData,
+        }
+      )
+        .then((res) => {
+          setIsCode(false);
+          setIsCodeVerified(false);
+          window.recaptchaVerifier = null;
+          const recaptchaElement = document.getElementById(
+            "recaptcha-container"
+          );
+          recaptchaElement.innerHTML = "";
+          setRegisterFormFields({
+            name: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+            phoneNumber: "",
+          });
+          navigate("/success");
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   };
 
@@ -107,15 +127,19 @@ const Signup = () => {
   const handleSendCode = async () => {
     let phoneNum = countryCode + phoneNumber;
     generateRecap();
+    setIsLoading(true);
     let appVerifier = await window.recaptchaVerifier;
     await signInWithPhoneNumber(authentication, phoneNum, appVerifier)
       .then((confirmationResult) => {
         window.confirmationResult = confirmationResult;
         setIsCode(true);
+        setIsLoading(false);
       })
       .catch((err) => {
         console.log(err);
         setIsCode(false);
+        setIsLoading(false);
+        alert("Unable to send Code! Please try again...");
       });
   };
 
@@ -229,7 +253,14 @@ const Signup = () => {
                   phoneNumber?.length !== 10 && "send_disabled"
                 }`}
               >
-                Send Code
+                {isLoading ? (
+                  <>
+                    <Loader />
+                    Send Code
+                  </>
+                ) : (
+                  "Send Code"
+                )}
               </button>
             ) : (
               ""
